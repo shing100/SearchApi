@@ -22,21 +22,29 @@ public class KakaoSearchScheduler {
 
     private final KakaoSearchService kakaoSearchService;
 
+    private final String COMMA = ",";
+
     @Scheduled(fixedDelay = 100000000)
     public void batchKakaoBuzCount() throws Exception {
-        log.info("=============== COM_ANALYSIS_KAKAO_BUZZ_COUNT START ===============");
+        log.info("=============== KAKAO_BUZZ_COUNT START ===============");
         List<Company> companyList = new ArrayList<>();
 
-        Resource resource = new ClassPathResource("static/company/searchList.txt");
+        log.info("=============== READ CSV FILE START ===============");
+        Resource resource = new ClassPathResource("static/company/companyList.csv");
         List<String> lines = Files.readAllLines(resource.getFile().toPath(), StandardCharsets.UTF_8);
         for (String line : lines) {
-            companyList.add(new Company(line.split(",")[0], line.split(",")[1]));
+            try {
+                companyList.add(new Company(line.split(COMMA)[2], line.split(COMMA)[0]));
+            } catch (Exception e) {
+                log.info(line.split(COMMA)[2] + " : " + line.split(COMMA)[0]);
+            }
         }
+        log.info("=============== READ CSV FILE END ===============");
 
         for (Company company : companyList) {
             kakaoSearchService.saveKakaoBuzzCount(company.getCompanyName(), company.getCsn());
         }
-        log.info("=============== COM_ANALYSIS_KAKAO_BUZZ_COUNT END ===============");
+        log.info("=============== KAKAO_BUZZ_COUNT END ===============");
     }
 
     @Data

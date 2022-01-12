@@ -30,8 +30,8 @@ public class KakaoSearchService {
     private final ObjectMapper objectMapper;
     private final RestTemplate restTemplate;
 
-    @Value("KAKAO.KEY.REST")
-    private final String REST_KEY;
+    @Value("${KAKAO.KEY.REST}")
+    private String REST_KEY;
 
     public void saveKakaoBuzzCount(String query, String csn) {
         String WEB = "web";
@@ -43,7 +43,7 @@ public class KakaoSearchService {
         Map<Integer, Integer> blogDayCount = new LinkedHashMap<>();
         Map<Integer, Integer> cafeDayCount = new LinkedHashMap<>();
 
-        int maxPage = 5; // 수집할 최대 페이지
+        int maxPage = 10; // 수집할 최대 페이지
         int size = 50; // 한번에 수집한 건수 :: 최대 50
 
         for (int i = 1; i <= maxPage; i++) {
