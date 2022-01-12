@@ -1,4 +1,4 @@
-package com.kingname.kakaoapi.utils;
+package com.kingname.api.common;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,6 +15,11 @@ import java.util.*;
 
 @Slf4j
 public class Utils {
+
+    public static String createIndexName(String name, String date) {
+        String IndexPattern = "buzz-".concat(name).concat("-YYYYMM");
+        return IndexPattern.replace("YYYYMM", date.substring(0,6));
+    }
 
     public static String getNowDateFormat(String format) {
         SimpleDateFormat sdf = new SimpleDateFormat(format);

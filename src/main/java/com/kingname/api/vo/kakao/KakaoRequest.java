@@ -1,4 +1,4 @@
-package com.kingname.kakaoapi.vo;
+package com.kingname.api.vo.kakao;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -10,7 +10,7 @@ import lombok.ToString;
 public class KakaoRequest {
 
     private String query;
-    private String sort = "recency"; // 최신순 : recency , 정확도순 : accuracy
+    private final String sort = "recency"; // 최신순 : recency , 정확도순 : accuracy
     private int page;
     private int size;
 }

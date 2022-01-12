@@ -1,8 +1,8 @@
-package com.kingname.kakaoapi.domain;
+package com.kingname.api.domain;
 
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.kingname.kakaoapi.utils.Utils;
+import com.kingname.api.common.Utils;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;

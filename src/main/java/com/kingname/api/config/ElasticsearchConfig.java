@@ -1,4 +1,4 @@
-package com.kingname.kakaoapi.config;
+package com.kingname.api.config;
 
 import org.elasticsearch.client.RestHighLevelClient;
 import org.springframework.beans.factory.annotation.Value;

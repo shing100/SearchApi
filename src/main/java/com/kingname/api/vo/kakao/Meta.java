@@ -1,4 +1,4 @@
-package com.kingname.kakaoapi.vo.kakao;
+package com.kingname.api.vo.kakao;
 
 import lombok.Getter;
 import lombok.Setter;

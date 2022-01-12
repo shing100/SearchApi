@@ -1,6 +1,6 @@
-package com.kingname.kakaoapi.repository;
+package com.kingname.api.repository;
 
-import com.kingname.kakaoapi.config.ElasticsearchIndex;
+import com.kingname.api.config.ElasticsearchIndex;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.delete.DeleteRequest;

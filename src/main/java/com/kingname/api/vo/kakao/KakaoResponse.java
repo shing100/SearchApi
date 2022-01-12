@@ -1,7 +1,7 @@
-package com.kingname.kakaoapi.vo;
+package com.kingname.api.vo.kakao;
 
-import com.kingname.kakaoapi.vo.kakao.Meta;
-import com.kingname.kakaoapi.vo.kakao.Document;
+import com.kingname.api.vo.kakao.Meta;
+import com.kingname.api.vo.kakao.Document;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;

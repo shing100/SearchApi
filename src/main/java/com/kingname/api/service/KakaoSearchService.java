@@ -1,12 +1,12 @@
-package com.kingname.kakaoapi.service;
+package com.kingname.api.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kingname.kakaoapi.domain.KakaoBuzz;
-import com.kingname.kakaoapi.repository.ElasticsearchRepository;
-import com.kingname.kakaoapi.utils.Utils;
-import com.kingname.kakaoapi.vo.KakaoRequest;
-import com.kingname.kakaoapi.vo.KakaoResponse;
-import com.kingname.kakaoapi.vo.kakao.Document;
+import com.kingname.api.domain.KakaoBuzz;
+import com.kingname.api.repository.ElasticsearchRepository;
+import com.kingname.api.common.Utils;
+import com.kingname.api.vo.kakao.KakaoRequest;
+import com.kingname.api.vo.kakao.KakaoResponse;
+import com.kingname.api.vo.kakao.Document;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +21,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.*;
 
+import static com.kingname.api.common.Utils.createIndexName;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -30,7 +32,7 @@ public class KakaoSearchService {
     private final ObjectMapper objectMapper;
     private final RestTemplate restTemplate;
 
-    @Value("${KAKAO.KEY.REST}")
+    @Value("${KEY.KAKAO}")
     private String REST_KEY;
 
     public void saveKakaoBuzzCount(String query, String csn) {
@@ -64,9 +66,8 @@ public class KakaoSearchService {
         webBuzzList.addAll(blogBuzzList);
         webBuzzList.addAll(cafeBuzzList);
 
-        String today = Utils.getNowDateFormat("yyyyMMdd");
-        String indexName = createIndexName(today);
-        log.info(indexName);
+        String indexName = createIndexName("kakao", Utils.getNowDateFormat("yyyyMMdd"));
+        log.info("index : {} , searchWord : {}", indexName, query);
         elasticsearchRepository.bulk(indexName, webBuzzList, KakaoBuzz.class);
     }
 
@@ -82,7 +83,7 @@ public class KakaoSearchService {
 
     // 문서 날짜별 카운트
     private Map<Integer, Integer> getDocumentsOfDayByCount(Map<Integer, Integer> dayCount, KakaoResponse kakaoResponse)  {
-        if (kakaoResponse != null) {
+        if (kakaoResponse != null && kakaoResponse.getDocuments() != null) {
             for (Document document : kakaoResponse.getDocuments()) {
                 String date = Utils.getDateStrByDateTime(document.getDatetime(), "yyyy-MM-dd");
                 if (!"".equals(date)) {
@@ -124,10 +125,5 @@ public class KakaoSearchService {
             e.printStackTrace();
         }
         return new KakaoResponse();
-    }
-
-    private String createIndexName(String date) {
-        String IndexPattern = "buzz-kakao-YYYYMM";
-        return IndexPattern.replace("YYYYMM", date.substring(0,6));
     }
 }
