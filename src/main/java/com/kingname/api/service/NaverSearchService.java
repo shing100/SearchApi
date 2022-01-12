@@ -67,9 +67,11 @@ public class NaverSearchService {
         List<NaverBuzz> blogBuzzList = getNaverBuzzList(csn, BLOG, query, blogDayCount);
         newsBuzzList.addAll(blogBuzzList);
 
-        String indexName = Utils.createIndexName("naver", Utils.getNowDateFormat("yyyyMMdd"));
-        log.info("index : {} , searchWord : {}", indexName, query);
-        elasticsearchRepository.bulk(indexName, newsBuzzList, NaverBuzz.class);
+        if (newsBuzzList.size() > 0) {
+            String indexName = Utils.createIndexName("naver", Utils.getNowDateFormat("yyyyMMdd"));
+            log.info("index : {} , searchWord : {}", indexName, query);
+            elasticsearchRepository.bulk(indexName, newsBuzzList, NaverBuzz.class);
+        }
     }
 
     // 날짜별 정렬
