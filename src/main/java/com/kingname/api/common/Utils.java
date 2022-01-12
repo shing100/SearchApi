@@ -16,6 +16,14 @@ import java.util.*;
 @Slf4j
 public class Utils {
 
+    public static void sleep(int millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public static String createIndexName(String name, String date) {
         String IndexPattern = "buzz-".concat(name).concat("-YYYYMM");
         return IndexPattern.replace("YYYYMM", date.substring(0,6));
