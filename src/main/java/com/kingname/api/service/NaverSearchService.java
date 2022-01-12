@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kingname.api.common.Utils;
 import com.kingname.api.domain.NaverBuzz;
 import com.kingname.api.repository.ElasticsearchRepository;
+import com.kingname.api.vo.naver.Item;
 import com.kingname.api.vo.naver.NaverRequest;
 import com.kingname.api.vo.naver.NaverResponse;
 import lombok.RequiredArgsConstructor;
@@ -32,10 +33,10 @@ public class NaverSearchService {
     private final ObjectMapper objectMapper;
     private final RestTemplate restTemplate;
 
-    @Value("KEY.NAVER.ID")
+    @Value("${KEY.NAVER.ID}")
     private String NAVER_ID;
 
-    @Value("KEY.NVAER.SECRET")
+    @Value("${KEY.NAVER.SECRET}")
     private String NAVER_SECRET;
 
 
@@ -49,23 +50,26 @@ public class NaverSearchService {
         Map<Integer, Integer> blogDayCount = new LinkedHashMap<>();
         Map<Integer, Integer> cafeDayCount = new LinkedHashMap<>();
 
-        int maxPage = 5; // 문서 최대 호출 페이지
+        int maxPage = 2; // 문서 최대 호출 페이지
         int display = 100; // 한번에 수집한 건수 :: 최대 100
 
-        for (int i = 0; i < maxPage; i++) {
-            naverResponse = getNaverApiRequest(NEWS, query, i * display, display);
+        for (int i = 1; i < maxPage; i++) {
+            naverResponse = getNaverApiRequest(NEWS, query, i > 1 ? i * display : i, display);
             newsDayCount = getDocumentsOfDayByCount(newsDayCount, naverResponse);
+            sleep(100);
 
             naverResponse = getNaverApiRequest(BLOG, query, i * display, display);
             blogDayCount = getDocumentsOfDayByCount(blogDayCount, naverResponse);
+            sleep(100);
 
             naverResponse = getNaverApiRequest(CAFE, query, i * display, display);
             cafeDayCount = getDocumentsOfDayByCount(cafeDayCount, naverResponse);
+            sleep(100);
         }
 
-        List<NaverBuzz> newsBuzzList = getKakaoBuzzList(csn, NEWS, query, newsDayCount);
-        List<NaverBuzz> blogBuzzList = getKakaoBuzzList(csn, BLOG, query, blogDayCount);
-        List<NaverBuzz> cafeBuzzList = getKakaoBuzzList(csn, CAFE, query, cafeDayCount);
+        List<NaverBuzz> newsBuzzList = getNaverBuzzList(csn, NEWS, query, newsDayCount);
+        List<NaverBuzz> blogBuzzList = getNaverBuzzList(csn, BLOG, query, blogDayCount);
+        List<NaverBuzz> cafeBuzzList = getNaverBuzzList(csn, CAFE, query, cafeDayCount);
 
         newsBuzzList.addAll(blogBuzzList);
         newsBuzzList.addAll(cafeBuzzList);
@@ -75,8 +79,16 @@ public class NaverSearchService {
         elasticsearchRepository.bulk(indexName, newsBuzzList, NaverBuzz.class);
     }
 
+    private void sleep(int millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     // 날짜별 정렬
-    public List<NaverBuzz> getKakaoBuzzList(String csn, String type, String query, Map<Integer, Integer> dayByCount) {
+    public List<NaverBuzz> getNaverBuzzList(String csn, String type, String query, Map<Integer, Integer> dayByCount) {
         List<Map.Entry<Integer, Integer>> entries = Utils.sortMapByKey(dayByCount);
         List<NaverBuzz> kakaoBuzzList = new ArrayList<>();
         for (Map.Entry<Integer, Integer> entry : entries) {
@@ -88,17 +100,18 @@ public class NaverSearchService {
     // 문서 날짜별 카운트
     private Map<Integer, Integer> getDocumentsOfDayByCount(Map<Integer, Integer> dayCount, NaverResponse naverResponse)  {
         if (naverResponse != null) {
-//            for (Document document : naverResponse.getDocuments()) {
-//                String date = Utils.getDateStrByDateTime(document.getDatetime(), "yyyy-MM-dd");
-//                if (!"".equals(date)) {
-//                    int parseInt = Integer.parseInt(date);
-//                    if (!dayCount.containsKey(parseInt)) {
-//                        dayCount.put(parseInt, 1);
-//                    } else {
-//                        dayCount.put(parseInt, dayCount.get(parseInt) + 1);
-//                    }
-//                }
-//            }
+            for (Item item : naverResponse.getItems()) {
+                String date = Utils.convertNaverDateToDateFormat(item.getPubDate(), "yyyyMMdd");
+                log.info(date);
+                if (!"".equals(date)) {
+                    int parseInt = Integer.parseInt(date);
+                    if (!dayCount.containsKey(parseInt)) {
+                        dayCount.put(parseInt, 1);
+                    } else {
+                        dayCount.put(parseInt, dayCount.get(parseInt) + 1);
+                    }
+                }
+            }
         }
         return dayCount;
     }
@@ -112,6 +125,8 @@ public class NaverSearchService {
     private NaverResponse getNaverApiRequest(String type, String query, int start, int display) {
         try {
             HttpHeaders httpHeaders = new HttpHeaders();
+
+            log.info("ID : {} , SECRET : {}", NAVER_ID, NAVER_SECRET);
             httpHeaders.add("X-Naver-Client-Id", NAVER_ID);
             httpHeaders.add("X-Naver-Client-Secret", NAVER_SECRET);
             NaverRequest requestVO = NaverRequest.builder().query(query).start(start).display(display).build();
@@ -123,10 +138,9 @@ public class NaverSearchService {
                     .queryParams(multiValueMap)
                     .build();
 
-            List list = restTemplate.exchange(components.toUriString(), HttpMethod.GET, new HttpEntity<>(httpHeaders), List.class).getBody();
-            for (Object object : list) {
-                log.info(object.toString());
-            }
+            return restTemplate.exchange(components.toUriString(), HttpMethod.GET,
+                    new HttpEntity<>(httpHeaders), NaverResponse.class)
+                    .getBody();
         } catch (Exception e) {
             e.printStackTrace();
         }

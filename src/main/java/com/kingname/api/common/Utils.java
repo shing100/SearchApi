@@ -27,6 +27,17 @@ public class Utils {
         return sdf.format(time.getTime());
     }
 
+    public static String convertNaverDateToDateFormat(String dateStr, String format) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z", Locale.US);
+        try {
+            Date date = dateFormat.parse(dateStr);
+            return new SimpleDateFormat(format).format(date);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public static Date convertStringToDate(String date) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
         try {
@@ -37,9 +48,9 @@ public class Utils {
         return null;
     }
 
-    public static String getDateStrByDateTime(String dateTime, String foramt) {
+    public static String getDateStrByDateTime(String dateTime, String format) {
         try {
-            DateFormat df = new SimpleDateFormat(foramt);
+            DateFormat df = new SimpleDateFormat(format);
             Date date = df.parse(dateTime.substring(0, 10));
             LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
             String yearStr = String.valueOf(localDate.getYear());

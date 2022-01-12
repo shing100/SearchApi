@@ -16,12 +16,12 @@ public class NaverSearchScheduler {
 
     private final NaverSearchService naverSearchService;
 
-    //@Scheduled(fixedDelay = 100000000)
+    @Scheduled(fixedDelay = 100000000)
     public void batchNaverBuzCount() throws Exception {
-        log.info("=============== KAKAO_BUZZ_COUNT START ===============");
+        log.info("=============== NAVER_BUZZ_COUNT START ===============");
         for (Company company : COMPANY_LIST) {
             naverSearchService.saveNaverBuzzCount(company.getCompanyName(), company.getCsn());
         }
-        log.info("=============== KAKAO_BUZZ_COUNT END ===============");
+        log.info("=============== NAVER_BUZZ_COUNT END ===============");
     }
 }

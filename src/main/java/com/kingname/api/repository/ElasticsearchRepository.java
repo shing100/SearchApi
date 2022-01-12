@@ -19,6 +19,7 @@ import org.elasticsearch.search.Scroll;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.IndexOperations;
+import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.IndexQuery;
 import org.springframework.data.elasticsearch.core.query.IndexQueryBuilder;
 import org.springframework.stereotype.Repository;
@@ -52,7 +53,7 @@ public class ElasticsearchRepository {
             indexOps.create();
             indexOps.putMapping(indexOps.createMapping());
         }
-        elasticsearchTemplate.bulkIndex(queries, tClass);
+        elasticsearchTemplate.bulkIndex(queries, IndexCoordinates.of(indexName));
     }
 
     public SearchResponse search(String indexName, SearchSourceBuilder searchSourceBuilder) throws IOException {

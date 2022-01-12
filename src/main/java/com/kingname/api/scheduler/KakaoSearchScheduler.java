@@ -16,7 +16,7 @@ public class KakaoSearchScheduler {
 
     private final KakaoSearchService kakaoSearchService;
 
-    @Scheduled(fixedDelay = 100000000)
+    //@Scheduled(fixedDelay = 100000000)
     public void batchKakaoBuzCount() throws Exception {
         log.info("=============== KAKAO_BUZZ_COUNT START ===============");
         for (Company company : COMPANY_LIST) {
