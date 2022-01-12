@@ -9,6 +9,11 @@ import com.kingname.api.vo.kakao.KakaoResponse;
 import com.kingname.api.vo.kakao.Document;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.elasticsearch.action.search.ClearScrollResponse;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -69,6 +74,41 @@ public class KakaoSearchService {
         String indexName = createIndexName("kakao", Utils.getNowDateFormat("yyyyMMdd"));
         log.info("index : {} , searchWord : {}", indexName, query);
         elasticsearchRepository.bulk(indexName, webBuzzList, KakaoBuzz.class);
+    }
+
+    /**
+     * 저장된 내용 CSV 파일로 저장
+     * @param indexName 엘라스틱서치 인덱스명
+     * @throws Exception
+     */
+    public void saveCsvFile(String indexName) throws Exception {
+        log.info("============ SCROLL SEARCH START ============");
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        searchSourceBuilder.size(50000);
+        searchSourceBuilder.query(QueryBuilders.matchAllQuery());
+        SearchResponse searchResponse = elasticsearchRepository.searchWithScroll(indexName, searchSourceBuilder);
+        String scrollId = searchResponse.getScrollId();
+        SearchHit[] hits = searchResponse.getHits().getHits();
+
+        while (hits != null && hits.length > 0) {
+            saveHit(hits);
+            searchResponse = elasticsearchRepository.scrollSearch(scrollId);
+            scrollId = searchResponse.getScrollId();
+            hits = searchResponse.getHits().getHits();
+        }
+
+        ClearScrollResponse clearScrollResponse = elasticsearchRepository.clearScroll(scrollId);
+        log.info("============ SCROLL CLEAR "+ clearScrollResponse.isSucceeded() + " ============");
+    }
+
+    /**
+     * 검색된 애용 저장 혹은 병합
+     * @param hits
+     */
+    private void saveHit(SearchHit[] hits) {
+        for (SearchHit hit : hits) {
+            Map<String, Object> source = hit.getSourceAsMap();
+        }
     }
 
     // 날짜별 정렬
