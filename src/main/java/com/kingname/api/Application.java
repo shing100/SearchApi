@@ -19,21 +19,23 @@ import static com.kingname.api.common.Constant.COMPANY_LIST;
 @Slf4j
 @EnableScheduling
 @SpringBootApplication
-public class KakaoApiApplication {
+public class Application {
 
     public static void main(String[] args) {
-        SpringApplication.run(KakaoApiApplication.class, args);
+        SpringApplication.run(Application.class, args);
     }
 
     @PostConstruct
     public void createSearchWord() throws Exception{
         log.info("=============== READ CSV FILE START ===============");
-        Resource resource = new ClassPathResource("static/company/companyList.csv");
+        Resource resource = new ClassPathResource("static/company/company.txt");
         List<String> lines = Files.readAllLines(resource.getFile().toPath(), StandardCharsets.UTF_8);
         for (String line : lines) {
             try {
-                if (line.split(Constant.COMMA)[2] != null && !"".equals(line.split(Constant.COMMA)[2])) {
-                    COMPANY_LIST.add(new Company(line.split(Constant.COMMA)[2], line.split(Constant.COMMA)[0]));
+                if (line.split(Constant.SEPARATOR)[0] != null && !"".equals(line.split(Constant.SEPARATOR)[1])) {
+                    String companyName = line.split(Constant.SEPARATOR)[0];
+                     companyName = companyName.replace("(주)", "").trim();
+                    COMPANY_LIST.add(new Company(companyName.replace(" ", ""), line.split(Constant.SEPARATOR)[1]));
                 }
             } catch (Exception e) {
                 log.info(line);
