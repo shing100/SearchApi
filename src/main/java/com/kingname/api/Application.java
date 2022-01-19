@@ -31,15 +31,12 @@ public class Application {
         Resource resource = new ClassPathResource("static/company/company.txt");
         List<String> lines = Files.readAllLines(resource.getFile().toPath(), StandardCharsets.UTF_8);
         for (String line : lines) {
-            try {
-                if (line.split(Constant.SEPARATOR)[0] != null && !"".equals(line.split(Constant.SEPARATOR)[1])) {
-                    String companyName = line.split(Constant.SEPARATOR)[0];
-                     companyName = companyName.replace("(주)", "").trim();
-                    COMPANY_LIST.add(new Company(companyName.replace(" ", ""), line.split(Constant.SEPARATOR)[1]));
-                }
-            } catch (Exception e) {
-                log.info(line);
-            }
+            String companyName = line.split(Constant.SEPARATOR)[0]
+                    .replace("(주)", "")
+                    .replace("(우)", "")
+                    .replace(" ", "").trim();
+            String csn = line.split(Constant.SEPARATOR)[1];
+            COMPANY_LIST.add(new Company(companyName, csn));
         }
         log.info("=============== READ CSV FILE END ===============");
     }

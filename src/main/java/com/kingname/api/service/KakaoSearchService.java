@@ -7,6 +7,8 @@ import com.kingname.api.common.Utils;
 import com.kingname.api.vo.kakao.KakaoRequest;
 import com.kingname.api.vo.kakao.KakaoResponse;
 import com.kingname.api.vo.kakao.Document;
+import com.kingname.api.vo.naver.Item;
+import com.kingname.api.vo.naver.NaverResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.search.ClearScrollResponse;
@@ -55,13 +57,13 @@ public class KakaoSearchService {
 
         for (int i = 1; i <= maxPage; i++) {
             kakaoResponse = getKakaoApiRequest(WEB, query, i, size);
-            webDayCount = getDocumentsOfDayByCount(webDayCount, kakaoResponse);
+            webDayCount = getCountOfDayByDocuments(webDayCount, kakaoResponse);
 
             kakaoResponse = getKakaoApiRequest(BLOG, query, i, size);
-            blogDayCount = getDocumentsOfDayByCount(blogDayCount, kakaoResponse);
+            blogDayCount = getCountOfDayByDocuments(blogDayCount, kakaoResponse);
 
             kakaoResponse = getKakaoApiRequest(CAFE, query, i, size);
-            cafeDayCount = getDocumentsOfDayByCount(cafeDayCount, kakaoResponse);
+            cafeDayCount = getCountOfDayByDocuments(cafeDayCount, kakaoResponse);
         }
 
         List<KakaoBuzz> webBuzzList = getKakaoBuzzList(csn, WEB, query, webDayCount);
@@ -122,16 +124,18 @@ public class KakaoSearchService {
     }
 
     // 문서 날짜별 카운트
-    private Map<Integer, Integer> getDocumentsOfDayByCount(Map<Integer, Integer> dayCount, KakaoResponse kakaoResponse)  {
+    private Map<Integer, Integer> getCountOfDayByDocuments(Map<Integer, Integer> dayCount, KakaoResponse kakaoResponse)  {
         if (kakaoResponse != null && kakaoResponse.getDocuments() != null) {
             for (Document document : kakaoResponse.getDocuments()) {
-                String date = Utils.getDateStrByDateTime(document.getDatetime(), "yyyy-MM-dd");
-                if (!"".equals(date)) {
-                    int parseInt = Integer.parseInt(date);
-                    if (!dayCount.containsKey(parseInt)) {
-                        dayCount.put(parseInt, 1);
-                    } else {
-                        dayCount.put(parseInt, dayCount.get(parseInt) + 1);
+                if (document != null) {
+                    String date = Utils.getDateStrByDateTime(document.getDatetime(), "yyyy-MM-dd");
+                    if (!"".equals(date)) {
+                        int parseInt = Integer.parseInt(date);
+                        if (!dayCount.containsKey(parseInt)) {
+                            dayCount.put(parseInt, 1);
+                        } else {
+                            dayCount.put(parseInt, dayCount.get(parseInt) + 1);
+                        }
                     }
                 }
             }
@@ -139,6 +143,28 @@ public class KakaoSearchService {
         return dayCount;
     }
 
+    // 문서 날짜별 타이틀
+    // 문서 날짜별 카운트와 합치는게 좋아보임
+    private Map<Integer, List<String>> getTitleOfDayByDocuments(Map<Integer, List<String>> titleList, KakaoResponse kakaoResponse)  {
+        if (kakaoResponse != null) {
+            for (Document document : kakaoResponse.getDocuments()) {
+                if (document != null) {
+                    String date = Utils.getDateStrByDateTime(document.getDatetime(), "yyyy-MM-dd");
+                    if (!"".equals(date)) {
+                        int parseInt = Integer.parseInt(date);
+                        if (!titleList.containsKey(parseInt)) {
+                            titleList.put(parseInt, List.of(document.getTitle()));
+                        } else {
+                            List<String> list = titleList.get(parseInt);
+                            list.add(document.getTitle());
+                            titleList.put(parseInt, list);
+                        }
+                    }
+                }
+            }
+        }
+        return titleList;
+    }
 
     /**
      * 카카오 검색 API

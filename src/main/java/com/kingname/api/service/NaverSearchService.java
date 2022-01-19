@@ -19,10 +19,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.kingname.api.common.Utils.sleep;
 
@@ -55,11 +52,11 @@ public class NaverSearchService {
         for (int i = 1; i < maxPage; i++) {
             int start = i > 1 ? i * display : i;
             naverResponse = getNaverApiRequest(NEWS, query, start, display);
-            newsDayCount = getDocumentsOfDayByCount(newsDayCount, naverResponse);
+            newsDayCount = getCountOfDayByDocuments(newsDayCount, naverResponse);
             sleep(100);
 
             naverResponse = getNaverApiRequest(BLOG, query, start, display);
-            blogDayCount = getDocumentsOfDayByCount(blogDayCount, naverResponse);
+            blogDayCount = getCountOfDayByDocuments(blogDayCount, naverResponse);
             sleep(100);
         }
 
@@ -85,7 +82,7 @@ public class NaverSearchService {
     }
 
     // 문서 날짜별 카운트
-    private Map<Integer, Integer> getDocumentsOfDayByCount(Map<Integer, Integer> dayCount, NaverResponse naverResponse)  {
+    private Map<Integer, Integer> getCountOfDayByDocuments(Map<Integer, Integer> dayCount, NaverResponse naverResponse)  {
         if (naverResponse != null) {
             for (Item item : naverResponse.getItems()) {
                 if (item.getDate() != null) {
@@ -99,6 +96,26 @@ public class NaverSearchService {
             }
         }
         return dayCount;
+    }
+
+    // 문서 날짜별 타이틀
+    // 문서 날짜별 카운트와 합치는게 좋아보임
+    private Map<Integer, List<String>> getTitleOfDayByDocuments(Map<Integer, List<String>> titleList, NaverResponse naverResponse)  {
+        if (naverResponse != null) {
+            for (Item item : naverResponse.getItems()) {
+                if (item.getDate() != null) {
+                    int parseInt = Integer.parseInt(item.getDate());
+                    if (!titleList.containsKey(parseInt)) {
+                        titleList.put(parseInt, List.of(item.getTitle()));
+                    } else {
+                        List<String> list = titleList.get(parseInt);
+                        list.add(item.getTitle());
+                        titleList.put(parseInt, list);
+                    }
+                }
+            }
+        }
+        return titleList;
     }
 
     /**
