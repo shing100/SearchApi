@@ -53,18 +53,16 @@ public class NaverBuzz {
     @Field(type = FieldType.Keyword)
     private String com_area_nm = "";
 
+    // entry dateStr(yyyyMMdd), count
     public static NaverBuzz create(String csn, String type, String searchKeyword, Map.Entry<Integer, Integer> entry) {
         NaverBuzz naverBuzz = new NaverBuzz();
         naverBuzz.setCsn(csn);
-        naverBuzz.setType(type);
+        naverBuzz.setType("naver" + type);
         naverBuzz.setSearchKeyword(searchKeyword);
         naverBuzz.setEvent_date(Date.from(Objects.requireNonNull(Utils.convertStringToDate(String.valueOf(entry.getKey())))
                 .toInstant().plusSeconds(3600 * 9L)));
         naverBuzz.setCount(entry.getValue());
+        naverBuzz.setId(csn + "_naver_" + type + "_" + entry.getKey());
         return naverBuzz;
-    }
-
-    public String getId() {
-        return this.csn + "_" + this.type + "_" + this.event_date.getDay();
     }
 }

@@ -12,9 +12,7 @@ import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
-import java.util.Date;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @Getter @Setter @ToString
 @Document(indexName = "#{@elasticsearchIndex.getIndexName()}")
@@ -54,19 +52,17 @@ public class KakaoBuzz {
     @Field(type = FieldType.Keyword)
     private String com_area_nm = "";
 
+    // entry dateStr(yyyyMMdd), count
     public static KakaoBuzz create(String csn, String type, String searchKeyword, Map.Entry<Integer, Integer> entry) {
         KakaoBuzz kakaoBuzz = new KakaoBuzz();
         kakaoBuzz.setCsn(csn);
-        kakaoBuzz.setType(type);
+        kakaoBuzz.setType("kakao_" + type);
         kakaoBuzz.setSearchKeyword(searchKeyword);
         kakaoBuzz.setEvent_date(Date.from(Objects.requireNonNull(Utils.convertStringToDate(String.valueOf(entry.getKey())))
                 .toInstant().plusSeconds(3600 * 9L)));
         kakaoBuzz.setCount(entry.getValue());
+        kakaoBuzz.setId(csn + "_kakao_" + type + "_" + entry.getKey());
         return kakaoBuzz;
-    }
-
-    public String getId() {
-        return this.csn + "_" + this.type + "_" + this.event_date.getDay();
     }
 }
 
