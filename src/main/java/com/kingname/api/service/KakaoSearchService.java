@@ -56,14 +56,20 @@ public class KakaoSearchService {
         int size = 50; // 한번에 수집한 건수 :: 최대 50
 
         for (int i = 1; i <= maxPage; i++) {
-            kakaoResponse = getKakaoApiRequest(WEB, query, i, size);
-            webDayCount = getCountOfDayByDocuments(webDayCount, kakaoResponse);
+            if (webDayCount.size() < 10) {
+                kakaoResponse = getKakaoApiRequest(WEB, query, i, size);
+                webDayCount = getCountOfDayByDocuments(webDayCount, kakaoResponse);
+            }
 
-            kakaoResponse = getKakaoApiRequest(BLOG, query, i, size);
-            blogDayCount = getCountOfDayByDocuments(blogDayCount, kakaoResponse);
+            if (blogDayCount.size() < 10) {
+                kakaoResponse = getKakaoApiRequest(BLOG, query, i, size);
+                blogDayCount = getCountOfDayByDocuments(blogDayCount, kakaoResponse);
+            }
 
-            kakaoResponse = getKakaoApiRequest(CAFE, query, i, size);
-            cafeDayCount = getCountOfDayByDocuments(cafeDayCount, kakaoResponse);
+            if (cafeDayCount.size() < 10) {
+                kakaoResponse = getKakaoApiRequest(CAFE, query, i, size);
+                cafeDayCount = getCountOfDayByDocuments(cafeDayCount, kakaoResponse);
+            }
         }
 
         List<KakaoBuzz> webBuzzList = getKakaoBuzzList(csn, WEB, query, webDayCount);

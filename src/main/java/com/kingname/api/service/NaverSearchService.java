@@ -51,13 +51,17 @@ public class NaverSearchService {
 
         for (int i = 1; i < maxPage; i++) {
             int start = i > 1 ? i * display : i;
-            naverResponse = getNaverApiRequest(NEWS, query, start, display);
-            newsDayCount = getCountOfDayByDocuments(newsDayCount, naverResponse);
-            sleep(100);
+            if (newsDayCount.size() < 10) {
+                naverResponse = getNaverApiRequest(NEWS, query, start, display);
+                newsDayCount = getCountOfDayByDocuments(newsDayCount, naverResponse);
+                sleep(100);
+            }
 
-            naverResponse = getNaverApiRequest(BLOG, query, start, display);
-            blogDayCount = getCountOfDayByDocuments(blogDayCount, naverResponse);
-            sleep(100);
+            if (blogDayCount.size() < 10) {
+                naverResponse = getNaverApiRequest(BLOG, query, start, display);
+                blogDayCount = getCountOfDayByDocuments(blogDayCount, naverResponse);
+                sleep(100);
+            }
         }
 
         List<NaverBuzz> newsBuzzList = getNaverBuzzList(csn, NEWS, query, newsDayCount);
