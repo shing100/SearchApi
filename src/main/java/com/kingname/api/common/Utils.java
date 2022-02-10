@@ -56,6 +56,17 @@ public class Utils {
         return null;
     }
 
+    public static String addDate(String strDate, int year, int month, int day) throws Exception {
+        SimpleDateFormat dtFormat = new SimpleDateFormat("yyyyMMdd");
+        Calendar cal = Calendar.getInstance();
+        Date dt = dtFormat.parse(strDate);
+        cal.setTime(dt);
+        cal.add(Calendar.YEAR, year);
+        cal.add(Calendar.MONTH, month);
+        cal.add(Calendar.DATE, day);
+        return dtFormat.format(cal.getTime());
+    }
+
     public static String getDateStrByDateTime(String dateTime, String format) {
         try {
             DateFormat df = new SimpleDateFormat(format);

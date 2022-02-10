@@ -11,6 +11,7 @@ import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
@@ -64,5 +65,18 @@ public class NaverBuzz {
         naverBuzz.setCount(entry.getValue());
         naverBuzz.setId(csn + "_naver_" + type + "_" + entry.getKey());
         return naverBuzz;
+    }
+
+    public boolean validateThisYear() {
+        try {
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
+            String today = Utils.getNowDateFormat("yyyyMMdd");
+            String yearStartDay = today.substring(0, 4).concat("0101");
+            int compare = event_date.compareTo(simpleDateFormat.parse(yearStartDay));
+            return compare > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }

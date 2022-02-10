@@ -27,8 +27,10 @@ import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.kingname.api.common.Utils.createIndexName;
+import static com.kingname.api.common.Utils.getNowDateFormat;
 
 @Slf4j
 @Service
@@ -42,6 +44,9 @@ public class KakaoSearchService {
     @Value("${KEY.KAKAO}")
     private String REST_KEY;
 
+    @Value("${ELASTICSEARCH.INDEX.KAKAO}")
+    private String KAKAO_INDEX;
+
     public void saveKakaoBuzzCount(String query, String csn) {
         String WEB = "web";
         String BLOG = "blog";
@@ -52,21 +57,22 @@ public class KakaoSearchService {
         Map<Integer, Integer> blogDayCount = new LinkedHashMap<>();
         Map<Integer, Integer> cafeDayCount = new LinkedHashMap<>();
 
-        int maxPage = 10; // 수집할 최대 페이지
+        int maxPage = 6; // 수집할 최대 페이지
         int size = 50; // 한번에 수집한 건수 :: 최대 50
+        int maxDayLimit = 10;
 
         for (int i = 1; i <= maxPage; i++) {
-            if (webDayCount.size() < 10) {
+            if (webDayCount.size() < maxDayLimit) {
                 kakaoResponse = getKakaoApiRequest(WEB, query, i, size);
                 webDayCount = getCountOfDayByDocuments(webDayCount, kakaoResponse);
             }
 
-            if (blogDayCount.size() < 10) {
+            if (blogDayCount.size() < maxDayLimit) {
                 kakaoResponse = getKakaoApiRequest(BLOG, query, i, size);
                 blogDayCount = getCountOfDayByDocuments(blogDayCount, kakaoResponse);
             }
 
-            if (cafeDayCount.size() < 10) {
+            if (cafeDayCount.size() < maxDayLimit) {
                 kakaoResponse = getKakaoApiRequest(CAFE, query, i, size);
                 cafeDayCount = getCountOfDayByDocuments(cafeDayCount, kakaoResponse);
             }
@@ -79,9 +85,15 @@ public class KakaoSearchService {
         webBuzzList.addAll(blogBuzzList);
         webBuzzList.addAll(cafeBuzzList);
 
-        String indexName = createIndexName("kakao", Utils.getNowDateFormat("yyyyMMdd"));
-        log.info("index : {} , searchWord : {}", indexName, query);
-        elasticsearchRepository.bulk(indexName, webBuzzList, KakaoBuzz.class);
+        List<KakaoBuzz> buzzList = webBuzzList.stream()
+                .filter(KakaoBuzz::validateThisYear)    // 이번 년도 비교
+                .collect(Collectors.toList());
+
+        if (buzzList.size() > 0) {
+            String today = getNowDateFormat("yyyyMMdd");
+            String indexName = KAKAO_INDEX.replace("yyyy", today.substring(0, 4));
+            elasticsearchRepository.bulk(indexName, buzzList, KakaoBuzz.class);
+        }
     }
 
     /**

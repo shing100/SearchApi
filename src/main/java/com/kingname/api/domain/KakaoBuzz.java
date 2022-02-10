@@ -12,6 +12,7 @@ import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Getter @Setter @ToString
@@ -63,6 +64,19 @@ public class KakaoBuzz {
         kakaoBuzz.setCount(entry.getValue());
         kakaoBuzz.setId(csn + "_kakao_" + type + "_" + entry.getKey());
         return kakaoBuzz;
+    }
+
+    public boolean validateThisYear() {
+        try {
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
+            String today = Utils.getNowDateFormat("yyyyMMdd");
+            String yearStartDay = today.substring(0, 4).concat("0101");
+            int compare = event_date.compareTo(simpleDateFormat.parse(yearStartDay));
+            return compare > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }
 

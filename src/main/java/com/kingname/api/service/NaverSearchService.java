@@ -20,7 +20,9 @@ import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
+import static com.kingname.api.common.Utils.getNowDateFormat;
 import static com.kingname.api.common.Utils.sleep;
 
 @Slf4j
@@ -38,6 +40,9 @@ public class NaverSearchService {
     @Value("${KEY.NAVER.SECRET}")
     private String NAVER_SECRET;
 
+    @Value("${ELASTICSEARCH.INDEX.NAVER}")
+    private String NAVER_INDEX;
+
     public void saveNaverBuzzCount(String query, String csn) {
         String NEWS = "news";
         String BLOG = "blog";
@@ -48,16 +53,17 @@ public class NaverSearchService {
 
         int maxPage = 3; // 문서 최대 호출 페이지
         int display = 100; // 한번에 수집한 건수 :: 최대 100
+        int maxDayLimit = 10;
 
         for (int i = 1; i < maxPage; i++) {
             int start = i > 1 ? i * display : i;
-            if (newsDayCount.size() < 10) {
+            if (newsDayCount.size() < maxDayLimit) {
                 naverResponse = getNaverApiRequest(NEWS, query, start, display);
                 newsDayCount = getCountOfDayByDocuments(newsDayCount, naverResponse);
                 sleep(100);
             }
 
-            if (blogDayCount.size() < 10) {
+            if (blogDayCount.size() < maxDayLimit) {
                 naverResponse = getNaverApiRequest(BLOG, query, start, display);
                 blogDayCount = getCountOfDayByDocuments(blogDayCount, naverResponse);
                 sleep(100);
@@ -68,10 +74,14 @@ public class NaverSearchService {
         List<NaverBuzz> blogBuzzList = getNaverBuzzList(csn, BLOG, query, blogDayCount);
         newsBuzzList.addAll(blogBuzzList);
 
-        if (newsBuzzList.size() > 0) {
-            String indexName = Utils.createIndexName("naver", Utils.getNowDateFormat("yyyyMMdd"));
-            log.info("index : {} , searchWord : {}", indexName, query);
-            elasticsearchRepository.bulk(indexName, newsBuzzList, NaverBuzz.class);
+        List<NaverBuzz> buzzList = newsBuzzList.stream()
+                .filter(NaverBuzz::validateThisYear)    // 이번 년도 비교
+                .collect(Collectors.toList());
+
+        if (buzzList.size() > 0) {
+            String today = getNowDateFormat("yyyyMMdd");
+            String indexName = NAVER_INDEX.replace("yyyy", today.substring(0, 4));
+            elasticsearchRepository.bulk(indexName, buzzList, NaverBuzz.class);
         }
     }
 
