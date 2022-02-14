@@ -21,7 +21,7 @@ public class KeywordBuzzController {
     private final KeywordBuzzService keywordBuzzService;
 
     @GetMapping("/company-chart-analyzer")
-    public ResponseEntity companyBuzzCount(@RequestParam(value = "csn") String csn, String type) throws Exception {
+    public ResponseEntity companyBuzzCount(@RequestParam(value = "searchWord") String searchWord, String type) throws Exception {
         String today = Utils.getNowDateFormat("yyyyMMdd");
         String to = Utils.addDate(today, 0, 0, -8);  // 오늘날짜 기준 7일전
         String from = Utils.addDate(to, 0, 0, -47);   //  최대 7주차
@@ -30,7 +30,7 @@ public class KeywordBuzzController {
             from = Utils.addDate(to, 0, 0, -34);   //  최대 5주차
         }
 
-        Map<String, Double> result = keywordBuzzService.getCompanyBuzzHistogram(csn, to, from);
+        Map<String, Double> result = keywordBuzzService.getCompanyBuzzHistogram(searchWord, to, from);
         return ResponseEntity.ok(result);
     }
 }
