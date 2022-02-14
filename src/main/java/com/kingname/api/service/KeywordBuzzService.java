@@ -45,13 +45,13 @@ public class KeywordBuzzService {
         return result;
     }
 
-    private SearchSourceBuilder getCsnAndDateRangeQuery(@RequestParam("csn") String csn, String aggName, String from, String to) {
+    private SearchSourceBuilder getCsnAndDateRangeQuery(String searchWord, String aggName, String from, String to) {
         String rangeField = "event_date";
         String sumField = "count";
         int intervalDay = 7;
 
         BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery()
-                .must(QueryBuilders.termQuery("csn", csn))
+                .must(QueryBuilders.termQuery("searchWord", searchWord))
                 .must(QueryBuilders.rangeQuery(rangeField).from(from).to(to));
 
         DateHistogramAggregationBuilder aggregations = AggregationBuilders.dateHistogram(aggName)
