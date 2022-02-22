@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -30,7 +31,7 @@ public class KeywordBuzzController {
             from = Utils.addDate(to, 0, 0, -34);   //  최대 5주차
         }
 
-        Map<String, Double> result = keywordBuzzService.getCompanyBuzzHistogram(searchWord, to, from);
+        List<Map<String, Object>> result = keywordBuzzService.getCompanyBuzzHistogram(searchWord, to, from);
         return ResponseEntity.ok(result);
     }
 }

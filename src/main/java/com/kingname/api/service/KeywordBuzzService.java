@@ -3,6 +3,7 @@ package com.kingname.api.service;
 import com.kingname.api.repository.ElasticsearchRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -16,8 +17,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.lang.reflect.Array;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 @Service
@@ -26,22 +28,33 @@ public class KeywordBuzzService {
 
     private final ElasticsearchRepository elasticsearchRepository;
 
-    public Map<String, Double> getCompanyBuzzHistogram(String csn, String to, String from) throws IOException {
+    public List<Map<String, Object>> getCompanyBuzzHistogram(String csn, String to, String from) throws IOException {
+        List<Map<String, Object>> result = new ArrayList<>();
+        Map<String, Double> pointsMap = new HashMap<>();
+        AtomicInteger periodIndex = new AtomicInteger();
+        String[] periodList = {"1주", "2주", "3주", "4주", "5주", "6주", "7주"};
         String aggName = "buzz_chart";
 
         SearchSourceBuilder searchSourceBuilder = getCsnAndDateRangeQuery(csn, aggName, from, to);
         SearchResponse searchResponse = elasticsearchRepository.search("keyword_analysis_*-202202", searchSourceBuilder);
         Histogram histogram = searchResponse.getAggregations().get(aggName);
-        Map<String, Double> result = new HashMap<>();
 
+        double denominator = 0;
         for (Histogram.Bucket bucket : histogram.getBuckets()) {
             String week = bucket.getKeyAsString();
             Sum countAggs = bucket.getAggregations().get("count");
-            double value = countAggs.getValue();
-            log.info("week {} , count {}", week, value);
-            // TODO value 값을 가지고 와서 5주차 값을 -> 수치로 변경
-            result.put(week, value);
+            denominator += countAggs.getValue();
+            pointsMap.put(week, countAggs.getValue());
         }
+        val finalDenominator = denominator;
+
+        pointsMap.forEach((k, v) -> {
+            Map<String, Object> chartData = new HashMap<>();
+            chartData.put("period", periodList[periodIndex.getAndIncrement()]);
+            chartData.put("date", k);
+            chartData.put("value", (double) Math.round((v / finalDenominator) * 100));
+            result.add(chartData);
+        });
         return result;
     }
 
