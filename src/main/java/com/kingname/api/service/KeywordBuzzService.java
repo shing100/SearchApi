@@ -36,7 +36,7 @@ public class KeywordBuzzService {
         String aggName = "buzz_chart";
 
         SearchSourceBuilder searchSourceBuilder = getCsnAndDateRangeQuery(csn, aggName, from, to);
-        SearchResponse searchResponse = elasticsearchRepository.search("keyword_analysis_*-202202", searchSourceBuilder);
+        SearchResponse searchResponse = elasticsearchRepository.search("keyword_analysis_*", searchSourceBuilder);
         Histogram histogram = searchResponse.getAggregations().get(aggName);
 
         double denominator = 0;
