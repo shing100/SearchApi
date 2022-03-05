@@ -149,11 +149,7 @@ public class KakaoSearchService {
                     String date = Utils.getDateStrByDateTime(document.getDatetime(), "yyyy-MM-dd");
                     if (!"".equals(date)) {
                         int parseInt = Integer.parseInt(date);
-                        if (!dayCount.containsKey(parseInt)) {
-                            dayCount.put(parseInt, 1);
-                        } else {
-                            dayCount.put(parseInt, dayCount.get(parseInt) + 1);
-                        }
+                        dayCount.merge(parseInt, 1, Integer::sum);
                     }
                 }
             }

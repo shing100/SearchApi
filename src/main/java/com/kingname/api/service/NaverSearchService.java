@@ -101,11 +101,7 @@ public class NaverSearchService {
             for (Item item : naverResponse.getItems()) {
                 if (item.getDate() != null) {
                     int parseInt = Integer.parseInt(item.getDate());
-                    if (!dayCount.containsKey(parseInt)) {
-                        dayCount.put(parseInt, 1);
-                    } else {
-                        dayCount.put(parseInt, dayCount.get(parseInt) + 1);
-                    }
+                    dayCount.merge(parseInt, 1, Integer::sum);
                 }
             }
         }
