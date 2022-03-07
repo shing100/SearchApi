@@ -2,6 +2,7 @@ package com.kingname.api.service;
 
 import com.kingname.api.common.Utils;
 import com.kingname.api.repository.ElasticsearchRepository;
+import com.kingname.api.vo.Buzz;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -33,11 +34,8 @@ public class KeywordBuzzService {
 
     private final ElasticsearchRepository elasticsearchRepository;
 
-    public List<Map<String, Object>> getCompanyBuzzHistogram(String csn, String type) throws IOException {
-        List<Map<String, Object>> result = new ArrayList<>();
-        Map<String, Double> pointsMap = new LinkedHashMap<>();
-        AtomicInteger periodIndex = new AtomicInteger();
-        String[] periodList = {"1주", "2주", "3주", "4주", "5주", "6주", "7주"};
+    public List<Buzz> getCompanyBuzzHistogram(String csn, String type) throws IOException {
+        List<Buzz> result = new ArrayList<>();
         String aggName = "buzz_chart";
 
         LocalDate to = LocalDate.now().minusDays(8);
@@ -54,20 +52,16 @@ public class KeywordBuzzService {
 
         double denominator = 0;
         for (Histogram.Bucket bucket : histogram.getBuckets()) {
-            String week = bucket.getKeyAsString();
             Sum countAggs = bucket.getAggregations().get("count");
             denominator += countAggs.getValue();
-            pointsMap.put(week, countAggs.getValue());
         }
-        val finalDenominator = denominator;
 
-        pointsMap.forEach((k, v) -> {
-            Map<String, Object> chartData = new HashMap<>();
-            chartData.put("period", periodList[periodIndex.getAndIncrement()]);
-            chartData.put("date", k);
-            chartData.put("value", (double) Math.round((v / finalDenominator) * 100));
-            result.add(chartData);
-        });
+        for (Histogram.Bucket bucket : histogram.getBuckets()) {
+            Sum countAggs = bucket.getAggregations().get("count");
+            Buzz buzz = new Buzz(bucket.getKeyAsString(), (double) Math.round((countAggs.getValue() / denominator) * 100));
+            result.add(buzz);
+        }
+
         return result;
     }
 

@@ -2,6 +2,7 @@ package com.kingname.api.controller;
 
 import com.kingname.api.common.Utils;
 import com.kingname.api.service.KeywordBuzzService;
+import com.kingname.api.vo.Buzz;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +25,7 @@ public class KeywordBuzzController {
     @GetMapping("/company-chart-analyzer")
     public ResponseEntity companyBuzzCount(@RequestParam(value = "searchWord") String searchWord, String type) throws Exception {
         try {
-            List<Map<String, Object>> result = keywordBuzzService.getCompanyBuzzHistogram(searchWord, type);
+            List<Buzz> result = keywordBuzzService.getCompanyBuzzHistogram(searchWord, type);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
